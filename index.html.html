@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>凱沁老師課程報名查詢</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap');
+
+  :root {
+    --ink: #1a1208;
+    --paper: #faf7f2;
+    --warm: #f5efe4;
+    --gold: #b8860b;
+    --gold-light: #d4a843;
+    --sage: #5a7a5e;
+    --sage-light: #7a9e7e;
+    --rust: #9b4a2e;
+    --muted: #8a7a6a;
+    --border: #ddd0ba;
+    --waitlist-bg: #fff8e6;
+    --waitlist-border: #e8c84a;
+    --success-bg: #f0f7f1;
+    --success-border: #5a7a5e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* Header */
+  .header {
+    background: var(--ink);
+    padding: 40px 24px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 20px,
+      rgba(184,134,11,0.04) 20px,
+      rgba(184,134,11,0.04) 21px
+    );
+  }
+  .header-inner { position: relative; z-index: 1; }
+  .header-label {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--gold-light);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 300;
+  }
+  .header h1 {
+    font-family: 'Noto Serif TC', serif;
+    font-size: clamp(22px, 5vw, 30px);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 2px;
+    line-height: 1.3;
+  }
+  .header-sub {
+    margin-top: 10px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    font-weight: 300;
+  }
+  .gold-line {
+    width: 48px;
+    height: 2px;
+    background: var(--gold);
+    margin: 16px auto 0;
+  }
+
+  /* Data source badge */
+  .source-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px auto 0;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 100px;
+    width: fit-content;
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+  }
+  .source-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #5a7a5e;
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Search section */
+  .search-section {
+    max-width: 520px;
+    margin: 32px auto 0;
+    padding: 0 20px;
+  }
+  .search-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-weight: 400;
+    letter-spacing: 1px;
+  }
+  .search-row {
+    display: flex;
+    gap: 10px;
+  }
+  .search-input {
+    flex: 1;
+    padding: 14px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 18px;
+    font-family: 'Noto Sans TC', sans-serif;
+    background: #fff;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: 1px;
+  }
+  .search-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184,134,11,0.12);
+  }
+  .search-input::placeholder { color: #c4b8a8; }
+
+  .search-btn {
+    padding: 14px 22px;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .search-btn:hover { background: #333; }
+  .search-btn:active { transform: scale(0.97); }
+
+  .hint {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* Results */
+  .results {
+    max-width: 520px;
+    margin: 28px auto 0;
+    padding: 0 20px;
+  }
+
+  .person-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .person-avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 17px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .person-name-block {}
+  .person-name {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .person-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .course-card {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .course-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  }
+  .course-card.waitlist {
+    border-color: var(--waitlist-border);
+    background: var(--waitlist-bg);
+  }
+  .course-card.confirmed {
+    border-color: var(--success-border);
+    background: var(--success-bg);
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .course-title-block {}
+  .course-type {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+  .course-name {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  .seq-badge {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .seq-badge.normal {
+    background: var(--ink);
+    color: #fff;
+  }
+  .seq-badge.waitlist {
+    background: var(--waitlist-border);
+    color: #5a4000;
+  }
+
+  .card-date {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .card-date svg { flex-shrink: 0; opacity: 0.5; }
+
+  .card-divider {
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 14px;
+    opacity: 0.6;
+  }
+  .course-card.waitlist .card-divider { background: var(--waitlist-border); }
+  .course-card.confirmed .card-divider { background: var(--success-border); }
+
+  .card-status-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid transparent;
+  }
+  .status-pill.green {
+    background: rgba(90,122,94,0.12);
+    color: var(--sage);
+    border-color: rgba(90,122,94,0.25);
+  }
+  .status-pill.red {
+    background: rgba(155,74,46,0.1);
+    color: var(--rust);
+    border-color: rgba(155,74,46,0.2);
+  }
+  .status-pill.amber {
+    background: rgba(232,200,74,0.2);
+    color: #7a5800;
+    border-color: rgba(232,200,74,0.5);
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-dot.green { background: var(--sage); }
+  .status-dot.red { background: var(--rust); }
+  .status-dot.amber { background: #d4a843; }
+
+  /* Not found */
+  .not-found {
+    text-align: center;
+    padding: 48px 24px;
+    background: #fff;
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+  }
+  .not-found-icon {
+    font-size: 36px;
+    margin-bottom: 14px;
+    opacity: 0.5;
+  }
+  .not-found h3 {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 17px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .not-found p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* Tip box */
+  .tip-box {
+    max-width: 520px;
+    margin: 24px auto 0;
+    padding: 0 20px;
+  }
+  .tip-inner {
+    background: var(--warm);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .tip-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* Initial state */
+  .initial-message {
+    text-align: center;
+    padding: 48px 0;
+  }
+  .initial-icon {
+    font-size: 48px;
+    margin-bottom: 14px;
+    opacity: 0.25;
+  }
+  .initial-text {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  /* Google Sheets connect banner */
+  .sheets-banner {
+    max-width: 520px;
+    margin: 16px auto 0;
+    padding: 0 20px;
+    display: none;
+  }
+  .sheets-banner.show { display: block; }
+  .sheets-inner {
+    background: #e8f0fe;
+    border: 1px solid #aecbfa;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 12px;
+    color: #174ea6;
+    line-height: 1.7;
+  }
+  .sheets-inner a {
+    color: #1a73e8;
+    font-weight: 500;
+  }
+
+  /* Footer */
+  .footer {
+    max-width: 520px;
+    margin: 40px auto 0;
+    padding: 0 20px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--border);
+    letter-spacing: 1px;
+  }
+
+  @media (max-width: 400px) {
+    .search-row { flex-direction: column; }
+    .search-btn { padding: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-label">2026 課程報名查詢</div>
+    <h1>凱沁老師這一班</h1>
+    <div class="header-sub">輸入您的姓名，即可查詢報名狀況</div>
+    <div class="gold-line"></div>
+    <div class="source-badge" id="sourceBadge">
+      <span class="source-dot"></span>
+      <span id="sourceText">資料已載入（上半年統計名單）</span>
+    </div>
+  </div>
+</div>
+
+<div class="search-section">
+  <div class="search-label">請輸入您的姓名</div>
+  <div class="search-row">
+    <input
+      type="text"
+      class="search-input"
+      id="nameInput"
+      placeholder="輸入您的大名即可查詢"
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+    />
+    <button class="search-btn" onclick="doSearch()">查詢</button>
+  </div>
+  <div class="hint">請輸入報名時填寫的全名</div>
+</div>
+
+<div class="results" id="results">
+  <div class="initial-message">
+    <div class="initial-icon">🔍</div>
+    <div class="initial-text">輸入姓名開始查詢</div>
+  </div>
+</div>
+
+<div class="tip-box">
+  <div class="tip-inner">
+    <span class="tip-icon">💡</span>
+    <div>
+      <strong>序號說明：</strong>正式學員顯示報名序號（如第 8 位）；「候補」學員將在正式學員退出後依序遞補。若您的入群狀態顯示「尚未入群」，請聯繫課務同工確認。
+    </div>
+  </div>
+</div>
+
+<div class="footer">TRIUMPH CHURCH · 旌旗教會 · 凱沁老師課程組</div>
+
+<script>
+// ===== 資料來源設定 =====
+// 【即時連結 Google Sheets 說明】
+// 將下方 USE_GOOGLE_SHEETS 改為 true，
+// 並填入您的試算表 ID（從網址中複製），
+// 試算表須設為「知道連結的任何人可以檢視」
+// ========================
+const USE_GOOGLE_SHEETS = true;
+const SHEET_ID = '1Io-RbLp-mEbc0VILxegEIqVnQSYUCrQAJPnEjE9ot_o';
+const SHEET_GID = '677753553'; // 上半年統計名單的 gid
+
+// ===== 靜態資料（從 xlsx 匯出）=====
+const STATIC_DB = {"徐浩洋": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "1", "isWaitlist": false, "joined": true}, {"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "1", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "28", "isWaitlist": false, "joined": true}], "陳雯鳳": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "1", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "2", "isWaitlist": false, "joined": true}], "劉俊龍": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "1", "isWaitlist": false, "joined": true}, {"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "18", "isWaitlist": false, "joined": true}], "陳加修": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "1", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補3", "isWaitlist": true, "joined": false}], "林佩琪": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "1", "isWaitlist": false, "joined": false}], "簡嘉辰": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "2", "isWaitlist": false, "joined": true}], "陳品潔": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "2", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "21", "isWaitlist": false, "joined": true}], "蕭育恬": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "2", "isWaitlist": false, "joined": true}], "梁芷玲": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "2", "isWaitlist": false, "joined": false}], "楊珮琦": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "2", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "15", "isWaitlist": false, "joined": true}], "蔡孟芳": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "3", "isWaitlist": false, "joined": true}], "郭瓊霞": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "3", "isWaitlist": false, "joined": true}], "林依潔": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "3", "isWaitlist": false, "joined": true}], "陳秀桃": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "3", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "4", "isWaitlist": false, "joined": true}], "劉姿君": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "3", "isWaitlist": false, "joined": false}], "盧逸芸": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "3", "isWaitlist": false, "joined": false}], "施駿赫": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "4", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "4", "isWaitlist": false, "joined": true}], "趙俊喨": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "4", "isWaitlist": false, "joined": true}], "王韻涵": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "4", "isWaitlist": false, "joined": false}], "何美瑢": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "4", "isWaitlist": false, "joined": false}], "葉純如": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "5", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "12", "isWaitlist": false, "joined": true}], "黃妍庭": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "5", "isWaitlist": false, "joined": true}], "廖紫薰": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "5", "isWaitlist": false, "joined": true}], "韓靝亙": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "5", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "7", "isWaitlist": false, "joined": true}], "劉韋呈": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "5", "isWaitlist": false, "joined": false}], "黃杏文": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "5", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "18", "isWaitlist": false, "joined": true}], "丁耀宗": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "6", "isWaitlist": false, "joined": true}], "馬慧蓮": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "6", "isWaitlist": false, "joined": true}], "施映羽": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "6", "isWaitlist": false, "joined": true}], "蔡怡萱": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "6", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "8", "isWaitlist": false, "joined": true}], "何佩遙": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "6", "isWaitlist": false, "joined": true}], "張惠棋": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "6", "isWaitlist": false, "joined": false}], "吳惠玲": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "7", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "7", "isWaitlist": false, "joined": true}], "粘家欣": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "7", "isWaitlist": false, "joined": true}], "林素絃": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "7", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補5", "isWaitlist": true, "joined": false}], "王雅慧": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "7", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補14", "isWaitlist": true, "joined": false}], "周玉苹": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "8", "isWaitlist": false, "joined": true}], "黃靖恩": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "8", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "26", "isWaitlist": false, "joined": true}], "陳曉媚": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "8", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "10", "isWaitlist": false, "joined": true}], "洪佳伶": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "8", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補4", "isWaitlist": true, "joined": false}], "徐廣雲": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "8", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "11", "isWaitlist": false, "joined": true}], "王成杰": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "9", "isWaitlist": false, "joined": true}, {"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "14", "isWaitlist": false, "joined": false}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "19", "isWaitlist": false, "joined": true}], "賴美惠": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "9", "isWaitlist": false, "joined": true}], "張淯淨": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "9", "isWaitlist": false, "joined": true}], "張佩穎": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "9", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "14", "isWaitlist": false, "joined": true}], "蔣鎮宇": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "9", "isWaitlist": false, "joined": false}], "李唯慈": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "9", "isWaitlist": false, "joined": false}], "楊珮雯": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "10", "isWaitlist": false, "joined": true}], "陳瀅如": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "10", "isWaitlist": false, "joined": true}], "廖泳溱": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "10", "isWaitlist": false, "joined": true}, {"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "24", "isWaitlist": false, "joined": true}], "陳貞睿": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "10", "isWaitlist": false, "joined": false}], "蕭怡群": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "10", "isWaitlist": false, "joined": false}], "蔡珮茹": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "11", "isWaitlist": false, "joined": true}], "林瓊玉": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "11", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "25", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "40", "isWaitlist": false, "joined": true}], "廖雅惠": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "11", "isWaitlist": false, "joined": true}], "羅珈琳": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "11", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "23", "isWaitlist": false, "joined": true}], "張力晴": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "11", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補8", "isWaitlist": true, "joined": false}], "張博清": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "12", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "14", "isWaitlist": false, "joined": true}], "廖奕晴": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "12", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "24", "isWaitlist": false, "joined": true}], "吳怡和": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "12", "isWaitlist": false, "joined": true}], "楊婷雅": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "12", "isWaitlist": false, "joined": false}], "張瑩瑩": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "12", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補7", "isWaitlist": true, "joined": false}], "陳柔安": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "13", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "16", "isWaitlist": false, "joined": true}], "林莉菁": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "13", "isWaitlist": false, "joined": true}], "陳亭玉": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "13", "isWaitlist": false, "joined": true}], "陳亭臻": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "13", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "20", "isWaitlist": false, "joined": true}], "張家綺": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "13", "isWaitlist": false, "joined": true}], "彭美悅": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "13", "isWaitlist": false, "joined": false}], "廖榮斌": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "14", "isWaitlist": false, "joined": true}], "陳軒竹": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "14", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "17", "isWaitlist": false, "joined": true}], "梅鍾琪": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "14", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補13", "isWaitlist": true, "joined": false}], "鄒俊志": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "15", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "41", "isWaitlist": false, "joined": false}], "陳于娟": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "15", "isWaitlist": false, "joined": true}], "顏玉婷": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "15", "isWaitlist": false, "joined": true}], "鄭莉芸": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "15", "isWaitlist": false, "joined": false}], "吳秀卿": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "15", "isWaitlist": false, "joined": false}], "劉于惠": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "16", "isWaitlist": false, "joined": true}], "涂瓊瑩": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "16", "isWaitlist": false, "joined": true}], "曾于宸": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "16", "isWaitlist": false, "joined": true}], "鄧皖庭": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "16", "isWaitlist": false, "joined": true}], "蔡菁芝": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "16", "isWaitlist": false, "joined": false}], "張丞萱": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "17", "isWaitlist": false, "joined": true}], "謝柏緯": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "17", "isWaitlist": false, "joined": true}], "蔡宜蒨": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "17", "isWaitlist": false, "joined": true}], "黃玉欣": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "17", "isWaitlist": false, "joined": true}], "黃春榮": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "17", "isWaitlist": false, "joined": false}], "黃于禎": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "18", "isWaitlist": false, "joined": true}], "郭姿佩": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "18", "isWaitlist": false, "joined": true}, {"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "25", "isWaitlist": false, "joined": true}], "陳富明": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "18", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補18", "isWaitlist": true, "joined": false}], "陳彥臻": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "18", "isWaitlist": false, "joined": false}], "蕭允成": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "19", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "36", "isWaitlist": false, "joined": true}], "蔡季蓁": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "19", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "30", "isWaitlist": false, "joined": true}], "張慈媛": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "19", "isWaitlist": false, "joined": true}], "李家榛": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "19", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補9", "isWaitlist": true, "joined": false}], "吳燕諄": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "19", "isWaitlist": false, "joined": false}], "楊惠珠": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "20", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "38", "isWaitlist": false, "joined": true}], "陳淑貞": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "20", "isWaitlist": false, "joined": true}], "黃莉雯": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "20", "isWaitlist": false, "joined": true}], "魏孟羚": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "20", "isWaitlist": false, "joined": false}], "游琇婷": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "20", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "25", "isWaitlist": false, "joined": false}], "洪苡容": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "21", "isWaitlist": false, "joined": true}], "曾瓊瑩": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "21", "isWaitlist": false, "joined": true}], "劉美鈴": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "21", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "22", "isWaitlist": false, "joined": true}], "陳雅新": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "21", "isWaitlist": false, "joined": false}], "黃羽純": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "21", "isWaitlist": false, "joined": false}], "李鈺婷": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "22", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "37", "isWaitlist": false, "joined": true}], "曾靜雯": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "22", "isWaitlist": false, "joined": true}], "劉曉釗": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "22", "isWaitlist": false, "joined": true}], "張詠欣": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "22", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補10", "isWaitlist": true, "joined": false}], "廖侯彥": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "22", "isWaitlist": false, "joined": false}], "梁秋詩": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "23", "isWaitlist": false, "joined": true}], "彭梓華": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "23", "isWaitlist": false, "joined": true}], "賴君琦": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "23", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "26", "isWaitlist": false, "joined": true}], "林佳愉": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "23", "isWaitlist": false, "joined": false}], "戴先文": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "23", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "候補2", "isWaitlist": true, "joined": false}], "陳惠玲": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "24", "isWaitlist": false, "joined": true}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "39", "isWaitlist": false, "joined": false}], "蘇雅貝": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "24", "isWaitlist": false, "joined": true}], "梁晏甄": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "24", "isWaitlist": false, "joined": false}], "潘育芬": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "24", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "候補3", "isWaitlist": true, "joined": false}], "楊雅萍": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "25", "isWaitlist": false, "joined": true}], "林采儀": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "25", "isWaitlist": false, "joined": true}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "27", "isWaitlist": false, "joined": true}], "蔡婉如": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "25", "isWaitlist": false, "joined": false}], "陳素真": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "26", "isWaitlist": false, "joined": true}], "廖惠貞": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "26", "isWaitlist": false, "joined": false}], "黃姈翎": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "26", "isWaitlist": false, "joined": false}, {"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "27", "isWaitlist": false, "joined": false}], "陳玉姿": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "26", "isWaitlist": false, "joined": false}, {"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "候補5", "isWaitlist": true, "joined": false}, {"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "42", "isWaitlist": false, "joined": false}], "黃堉嫻": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "27", "isWaitlist": false, "joined": true}], "林玉雙": [{"courseName": "中年再出發", "date": "1/31(六)-2/1(日)", "seq": "27", "isWaitlist": false, "joined": true}], "蔡銘": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "27", "isWaitlist": false, "joined": true}], "阮婷筠": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "27", "isWaitlist": false, "joined": false}], "方藝樺": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "28", "isWaitlist": false, "joined": true}], "林志軒": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "28", "isWaitlist": false, "joined": true}], "張睿朔": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "28", "isWaitlist": false, "joined": false}], "郭瑜讌": [{"courseName": "中年再出發", "date": "5/30(六)-5/31(日)", "seq": "28", "isWaitlist": false, "joined": false}], "洪志豪": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "29", "isWaitlist": false, "joined": true}], "黃麗佳": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "29", "isWaitlist": false, "joined": true}], "賴國睿": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "29", "isWaitlist": false, "joined": true}], "陳易萱": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "29", "isWaitlist": false, "joined": false}], "洪靖雅": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "30", "isWaitlist": false, "joined": true}], "賴怡君": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "30", "isWaitlist": false, "joined": true}], "洪明陽": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "30", "isWaitlist": false, "joined": false}], "美君": [{"courseName": "走訪童年", "date": "1/10(六)-1/11(日)", "seq": "31", "isWaitlist": false, "joined": false}], "孫碧月": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補1", "isWaitlist": true, "joined": false}], "徐瑋瑩": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "31", "isWaitlist": false, "joined": true}], "洪可棠": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "候補1", "isWaitlist": true, "joined": false}], "郭姵君": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補2", "isWaitlist": true, "joined": false}], "林佳君": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "32", "isWaitlist": false, "joined": true}], "林煒倫": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "33", "isWaitlist": false, "joined": true}], "吳婉嫻": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "34", "isWaitlist": false, "joined": true}], "張光宇": [{"courseName": "走訪童年", "date": "5/9(六)-5/10(日)", "seq": "候補4", "isWaitlist": true, "joined": false}, {"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補6", "isWaitlist": true, "joined": false}], "林信逸": [{"courseName": "九型人格", "date": "5/2(六)-5/3(日)", "seq": "35", "isWaitlist": false, "joined": true}], "張雅閔": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補11", "isWaitlist": true, "joined": false}], "柯淑芳": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補12", "isWaitlist": true, "joined": false}], "陳文軒": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補15", "isWaitlist": true, "joined": false}], "徐錦玲": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補16", "isWaitlist": true, "joined": false}], "鍾一麟": [{"courseName": "走訪童年", "date": "4/18(六)-4/19(日)", "seq": "候補17", "isWaitlist": true, "joined": false}]};
+
+// ===== Google Sheets 即時讀取 =====
+async function fetchFromSheets() {
+  // CSV export API — 不受 CORS 限制，公開試算表可直接讀取
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+  try {
+    const res = await fetch(url, { redirect: 'follow' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    return parseCSVData(text);
+  } catch(e) {
+    console.error('Sheets fetch failed:', e);
+    return null;
+  }
+}
+
+function parseCSVData(csvText) {
+  function parseCSVLine(line) {
+    const result = [];
+    let cur = '', inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuote && line[i+1] === '"') { cur += '"'; i++; }
+        else inQuote = !inQuote;
+      } else if (ch === ',' && !inQuote) {
+        result.push(cur.trim()); cur = '';
+      } else cur += ch;
+    }
+    result.push(cur.trim());
+    return result;
+  }
+
+  const lines = csvText.split('\n').filter(l => l.trim());
+  const db = {};
+
+  const courses = [
+    {name:'走訪童年', date:'1/10(六)-1/11(日)', cols:[0,1,2]},
+    {name:'中年再出發', date:'1/31(六)-2/1(日)', cols:[4,5,6]},
+    {name:'走訪童年', date:'4/18(六)-4/19(日)', cols:[8,9,10]},
+    {name:'九型人格', date:'5/2(六)-5/3(日)', cols:[11,12,13]},
+    {name:'走訪童年', date:'5/9(六)-5/10(日)', cols:[14,15,16]},
+    {name:'中年再出發', date:'5/30(六)-5/31(日)', cols:[17,18,19]},
+    {name:'九型整合', date:'6/13(六)-6/14(日)', cols:[20,21,22]},
+  ];
+
+  // 跳過前兩行標題
+  for (let i = 2; i < lines.length; i++) {
+    const row = parseCSVLine(lines[i]);
+    for (const c of courses) {
+      const [si, ni, gi] = c.cols;
+      const seq = (row[si] || '').trim();
+      const name = (row[ni] || '').trim();
+      const joined = (row[gi] || '').trim();
+      if (!name || name === '#N/A' || !seq) continue;
+      if (!db[name]) db[name] = [];
+      db[name].push({
+        courseName: c.name,
+        date: c.date,
+        seq: seq,
+        isWaitlist: seq.includes('候補'),
+        joined: joined === 'TRUE' || joined === '是' || joined === 'true'
+      });
+    }
+  }
+  return db;
+}
+
+// ===== 主查詢邏輯 =====
+let currentDB = STATIC_DB;
+let dataLoaded = false;
+
+async function initData() {
+  if (USE_GOOGLE_SHEETS) {
+    document.getElementById('sourceText').textContent = '正在連接 Google Sheets…';
+    const liveDB = await fetchFromSheets();
+    if (liveDB) {
+      currentDB = liveDB;
+      document.getElementById('sourceText').textContent = '即時連結 Google Sheets ✓';
+    } else {
+      document.getElementById('sourceText').textContent = '已使用本機資料（無法連接試算表）';
+    }
+  }
+  dataLoaded = true;
+}
+
+function doSearch() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) {
+    document.getElementById('nameInput').focus();
+    return;
+  }
+
+  // Fuzzy match: exact first, then partial
+  let entries = currentDB[name];
+  let matchedName = name;
+
+  if (!entries) {
+    // Try partial match
+    const keys = Object.keys(currentDB);
+    const partial = keys.find(k => k.includes(name) || name.includes(k));
+    if (partial) {
+      entries = currentDB[partial];
+      matchedName = partial;
+    }
+  }
+
+  renderResults(name, matchedName, entries);
+}
+
+function renderResults(searchName, matchedName, entries) {
+  const el = document.getElementById('results');
+
+  if (!entries || entries.length === 0) {
+    el.innerHTML = `
+      <div class="not-found">
+        <div class="not-found-icon">🔎</div>
+        <h3>查無「${searchName}」的報名資料</h3>
+        <p>請確認姓名是否與報名時填寫的完全一致<br>若有疑問，請聯繫課務同工確認</p>
+      </div>
+    `;
+    return;
+  }
+
+  const confirmedCount = entries.filter(e => !e.isWaitlist).length;
+  const waitlistCount = entries.filter(e => e.isWaitlist).length;
+
+  let metaText = `共報名 ${confirmedCount} 堂正式課程`;
+  if (waitlistCount > 0) metaText += `，${waitlistCount} 堂候補中`;
+
+  let html = `
+    <div class="person-header">
+      <div class="person-avatar">${matchedName.charAt(0)}</div>
+      <div class="person-name-block">
+        <div class="person-name">${matchedName}</div>
+        <div class="person-meta">${metaText}</div>
+      </div>
+    </div>
+  `;
+
+  for (const e of entries) {
+    const cardClass = e.isWaitlist ? 'waitlist' : 'confirmed';
+    const seqClass = e.isWaitlist ? 'waitlist' : 'normal';
+    const seqLabel = e.isWaitlist ? e.seq : `第 ${e.seq} 位`;
+
+    const joinedPill = e.joined
+      ? `<span class="status-pill green"><span class="status-dot green"></span>已入群</span>`
+      : `<span class="status-pill red"><span class="status-dot red"></span>尚未入群</span>`;
+
+    const statusPill = e.isWaitlist
+      ? `<span class="status-pill amber"><span class="status-dot amber"></span>候補中，等待遞補</span>`
+      : `<span class="status-pill green"><span class="status-dot green"></span>報名成功</span>`;
+
+    html += `
+      <div class="course-card ${cardClass}">
+        <div class="card-top">
+          <div class="course-title-block">
+            <div class="course-type">上半年課程</div>
+            <div class="course-name">${e.courseName}</div>
+          </div>
+          <span class="seq-badge ${seqClass}">${seqLabel}</span>
+        </div>
+        <div class="card-date">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v3M11 1v3M2 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          ${e.date}
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-status-row">
+          ${statusPill}
+          ${joinedPill}
+        </div>
+      </div>
+    `;
+  }
+
+  el.innerHTML = html;
+}
+
+// Enter key support
+document.getElementById('nameInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doSearch();
+});
+
+// Init
+initData();
+</script>
+</body>
+</html>
